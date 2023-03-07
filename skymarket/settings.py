@@ -45,11 +45,18 @@ INSTALLED_APPS = [
     # Фильтры django-filter
     'django_filters',
 
-    "rest_framework",
+    # # third party package for user registration and authentication endpoints
+    # 'djoser',
+    # # rest API implementation library for django
+    # "rest_framework",
+    #
+    # # JWT authentication backend library
+    # 'rest_framework_simplejwt',
+
     "corsheaders",
 
     # "django_apscheduler" - для создания периодических задач
-    "django_apscheduler",
+    # "django_apscheduler",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -64,13 +71,13 @@ INSTALLED_APPS = [
     # Other apps…
     "phonenumber_field",
 
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    # ... include the providers you want to enable:
-    'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.yahoo',
-    'allauth.socialaccount.providers.yandex',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # # ... include the providers you want to enable:
+    # 'allauth.socialaccount.providers.google',
+    # 'allauth.socialaccount.providers.yahoo',
+    # 'allauth.socialaccount.providers.yandex',
 ]
 
 MIDDLEWARE = [
@@ -111,6 +118,12 @@ AUTHENTICATION_BACKENDS = [
     # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 WSGI_APPLICATION = 'skymarket.wsgi.application'
 
