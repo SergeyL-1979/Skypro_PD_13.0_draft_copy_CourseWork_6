@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "skypro-pd-13-0-sergey-levchuk-coursework-6"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "skypro_pd_13"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+psycopg2-binary = "^2.9.5"
+python-dotenv = "^1.0.0"
+django-allauth = "^0.52.0"
+django-apscheduler = "^0.6.2"
+django-cors-headers = "^3.14.0"
+django-filter = "^22.1"
+apscheduler = "^3.10.1"
+django = "^4.1.7"
+djangorestframework = "^3.14.0"
+pillow = "^9.4.0"
+django-phonenumber-field = {extras = ["phonenumbers"], version = "^7.0.2"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
