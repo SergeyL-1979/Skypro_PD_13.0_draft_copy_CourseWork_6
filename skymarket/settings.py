@@ -34,8 +34,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1']
 
 
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     # my_app
     'redoc.apps.RedocConfig',
@@ -45,18 +45,7 @@ INSTALLED_APPS = [
     # Фильтры django-filter
     'django_filters',
 
-    # # third party package for user registration and authentication endpoints
-    # 'djoser',
-    # # rest API implementation library for django
-    # "rest_framework",
-    #
-    # # JWT authentication backend library
-    # 'rest_framework_simplejwt',
-
     "corsheaders",
-
-    # "django_apscheduler" - для создания периодических задач
-    # "django_apscheduler",
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -67,6 +56,15 @@ INSTALLED_APPS = [
 
     # приложения свое для авторизации
     # 'accounts',
+
+    # rest API implementation library for django
+    "rest_framework",
+
+    # JWT authentication backend library
+    'rest_framework_simplejwt',
+    # 'rest_framework.authtoken'
+    # third party package for user registration and authentication endpoints
+    'djoser',
 
     # Other apps…
     "phonenumber_field",
@@ -119,14 +117,24 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
-
 WSGI_APPLICATION = 'skymarket.wsgi.application'
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}
+
+# здесь мы настраиваем Djoser
+DJOSER = {
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -244,6 +252,12 @@ EMAIL_USE_TLS = True  # Здесь должно быть True, Иначе отп
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000"
+]
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_CREDENTIALS = True
 
 # Provider specific settings
 # SOCIALACCOUNT_PROVIDERS = {
