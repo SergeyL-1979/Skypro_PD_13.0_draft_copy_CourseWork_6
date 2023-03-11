@@ -9,39 +9,41 @@ from django.urls import reverse
 class UserManager(BaseUserManager):
     models = User
 
-    def create_user(self, email, username, password=None):
+    def create_user(self, email, first_name, last_name, phone, role, password=None):
         """
         Создает и сохраняет пользователя с указанным адресом электронной почты и паролем.
         """
         if not email:
             raise ValueError('Users must have an email address')
-        if not username:
-            raise ValueError('Users must have a username')
+        # if not username:
+        #     raise ValueError('Users must have a username')
 
-        user = self.model(email=self.normalize_email(email), username=username, )
-
+        user = self.model(
+            email=self.normalize_email(email),
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            role=role
+        )
+        user.is_active = True
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_staffuser(self, email, password):
-        """
-        Создает и сохраняет штатного пользователя с указанным адресом электронной почты и паролем.
-        """
-        user = self.create_user(email, password=password, )
-        user.staff = True
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, email, username, password):
+    def create_superuser(self, email, first_name, last_name, phone, password=None):
         """
         Создает и сохраняет суперпользователя с указанным адресом электронной почты и паролем.
+        Функция для создания суперпользователя — с ее помощью мы создаем администратора
+        это можно сделать с помощью команды createsuperuser
         """
 
         user = self.create_user(
             email=self.normalize_email(email),
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
             password=password,
-            username=username,
+            # role="admin"
         )
         user.is_admin = True
         user.is_staff = True
