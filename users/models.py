@@ -21,7 +21,7 @@ from django.utils.translation import gettext_lazy as _
 #     ADMIN = 'Администратор'
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, ):
     """
     Создание модели пользователя.
     Необходимые поля:
@@ -32,25 +32,23 @@ class User(AbstractBaseUser):
     - role — роль пользователя, доступные значения: user, admin.
     - image - аватарка пользователя
     """
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
     # TODO переопределение пользователя.
     # TODO подробности также можно поискать в рекомендациях к проекту
     STATUS = [
         ('admin', 'Администратор'),
         ('user', 'Пользователь'),
     ]
-    # usename = models.CharField(db_index=True, max_length=255, unique=True)
+    username = models.CharField(db_index=True, max_length=255, unique=True)
     email = models.EmailField(db_index=True, max_length=60, unique=True, verbose_name='Почта')
     first_name = models.CharField(max_length=50, verbose_name='Имя')
     last_name = models.CharField(max_length=50, verbose_name='Фамилия')
     phone = PhoneNumberField(null=False, blank=False, unique=True, verbose_name='Телефон')
     last_login = models.DateTimeField(auto_now=True, verbose_name='Последний визит')
-    role = models.CharField(max_length=5, choices=STATUS, default='user')
+    role = models.CharField(max_length=15, choices=STATUS, default='user', verbose_name='Права пользователя')
     # role = models.CharField(choices=[(user_role.value, user_role.name) for user_role in UserRoles],
     #                         max_length=15, verbose_name='Роль пользователя')
     image = models.ImageField(upload_to="img_users", verbose_name='Аватарка пользователя')
+
     # is_active = models.BooleanField(default=True)
 
     def image_(self):
@@ -59,6 +57,7 @@ class User(AbstractBaseUser):
             return mark_safe(u'<a href="{0}" target="_blank"><img src="{0}" width="150"/></a>'.format(self.image.url))
         else:
             return '(Нет изображения)'
+
     image_.short_description = 'Аватарка пользователя'
     image_.allow_tags = True
 
@@ -70,19 +69,44 @@ class User(AbstractBaseUser):
                                     ),
                                     )
 
-    is_staff = models.BooleanField(_('Staff Status'),
-                                   default=False,
-                                   help_text=_('Определяет, может ли пользователь войти на этот сайт администратора.'),
-                                   )
+    # is_staff = models.BooleanField(_('Staff Status'),
+    #                                default=False,
+    #                                help_text=_('Определяет, может ли пользователь войти на этот сайт администратора.'),
+    #                                )
+    # is_admin = models.BooleanField(default=False)
+    # is_superuser = models.BooleanField(default=False)
 
+    # эта константа определяет поле для логина пользователя
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['password', 'username']
+    # эта константа содержит список с полями,
+    # которые необходимо заполнить при создании пользователя
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone', 'role']
 
+    # для корректной работы нам также необходимо
+    # переопределить менеджер модели пользователя
     objects = UserManager()
+
+    @property
+    def is_admin(self):
+        # return self.role == UserRoles.ADMIN
+        return self.role == 'admin'
+
+    @property
+    def is_user(self):
+        # return self.role == UserRoles.USER
+        return self.role == 'user'
 
     def __str__(self):
         """ Строковое представление модели (отображается в консоли) """
         return self.email
+
+    @property
+    def is_superuser(self):
+        return self.is_admin
+
+    @property
+    def is_stuff(self):
+        return self.is_admin
 
     @property
     def token(self):
@@ -97,14 +121,31 @@ class User(AbstractBaseUser):
         Этот метод требуется Django для таких вещей, как обработка электронной
         почты. Обычно это имя фамилия пользователя, но поскольку мы не
         используем их, будем возвращать username.
+        Returns the first_name plus the last_name, with a space in between.
         """
         # return self.username
-        return self.email
+        # return self.email
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
 
     def get_short_name(self):
-        """ Аналогично методу get_full_name(). """
+        """ Аналогично методу get_full_name().
+        Returns the short name for the user.
+        """
         # return self.username
-        return self.email
+        # return self.email
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        """
+        Отправляет электронное письмо пользователю.
+        :param subject: ТЕМА СООБЩЕНИЯ
+        :param message: ТЕЛО САМОГО СООБЩЕНИЯ
+        :param from_email: ОТ КОГО ОТПРАВЛЕНО СООБЩЕНИЕ
+        :param kwargs:
+        :return:
+        """
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def _generate_jwt_token(self):
         """
@@ -120,7 +161,32 @@ class User(AbstractBaseUser):
 
         return token.decode('utf-8')
 
+    # Для проверки разрешений. Для простоты у всех администраторов есть ВСЕ разрешения
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
 
+    def has_perms(self, perm_list, obj=None):
+        """
+        Returns True if the user has each of the specified permissions. If
+        object is passed, it checks if the user has all required perms for this
+        object.
+        Возвращает True, если у пользователя есть каждое из указанных разрешений.
+        Если объект передан, он проверяет, есть ли у пользователя все необходимые
+        разрешения для этого объекта.
+        """
+        for perm in perm_list:
+            if not self.has_perm(perm, obj):
+                return False
+        return True
+
+    # Does this user have permission to view this app? (ALWAYS YES FOR SIMPLICITY)
+    def has_module_perms(self, app_label):
+        # return True
+        return self.is_admin
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 # =====================================================================================================
 # class User(AbstractBaseUser):
