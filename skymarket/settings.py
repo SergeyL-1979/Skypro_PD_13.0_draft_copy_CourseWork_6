@@ -33,6 +33,14 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8000"
+]
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_ALLOW_CREDENTIALS = True
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -53,13 +61,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # сторонний пакет для конечных точек регистрации и аутентификации пользователей
-    'djoser',
     # Библиотека реализации rest API для django
     "rest_framework",
     # JWT authentication backend library (Серверная библиотека аутентификации JWT)
-    'rest_framework_simplejwt',
-    # 'rest_framework.authtoken'
+    # 'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+
+    # сторонний пакет для конечных точек регистрации и аутентификации пользователей
+    'djoser',
 
     # Other apps…
     "phonenumber_field",
@@ -128,9 +137,15 @@ REST_FRAMEWORK = {
 }
 
 # здесь мы настраиваем Djoser
+# DJOSER = {
+#     'ACTIVATION_URL': '#/activate/{uid}/{token}',
+#     'SEND_ACTIVATION_EMAIL': False,
+# }
 DJOSER = {
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': False,
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.UserRegistrationSerializer'
+    },
+    'LOGIN_FIELD': 'email'
 }
 
 # SIMPLE_JWT = {
@@ -218,6 +233,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_ID = 1
 
+AUTH_USER_MODEL = 'users.User'
+LOGIN_USERNAME_FIELDS = ['email', ]
+
 # """ The user is required to hand over an e-mail address when signing up. """
 # ACCOUNT_EMAIL_REQUIRED = True
 #
@@ -239,8 +257,7 @@ SITE_ID = 1
 # """ Determines the e-mail verification method during signup – choose one of "mandatory", "optional", or "none". """
 # ACCOUNT_EMAIL_VERIFICATION = True
 
-# AUTH_USER_MODEL = 'users.User'
-# LOGIN_USERNAME_FIELDS = ['email', ]
+
 # ACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSignupForm'}
 # SOCIALACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSocialSignupForm'}
 
@@ -256,12 +273,7 @@ EMAIL_USE_TLS = True  # Здесь должно быть True, Иначе отп
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000"
-]
 
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-CORS_ALLOW_CREDENTIALS = True
 
 # Provider specific settings
 # SOCIALACCOUNT_PROVIDERS = {
