@@ -239,7 +239,8 @@ SITE_ID = 1
 # """ Determines the e-mail verification method during signup – choose one of "mandatory", "optional", or "none". """
 # ACCOUNT_EMAIL_VERIFICATION = True
 
-AUTH_USER_MODEL = 'users.User'
+# AUTH_USER_MODEL = 'users.User'
+# LOGIN_USERNAME_FIELDS = ['email', ]
 # ACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSignupForm'}
 # SOCIALACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSocialSignupForm'}
 
