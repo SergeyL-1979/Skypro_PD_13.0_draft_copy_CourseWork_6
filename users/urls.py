@@ -5,4 +5,5 @@ from rest_framework.routers import SimpleRouter
 # TODO для этокого рекоммендуется использовать SimpleRouter
 
 urlpatterns = [
+    # path('api/', )
 ]

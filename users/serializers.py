@@ -12,4 +12,9 @@ class UserRegistrationSerializer(BaseUserRegistrationSerializer):
 
 
 class CurrentUserSerializer(serializers.ModelSerializer):
-    pass
+    email = serializers.EmailField(max_length=60)
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
+    # phone = PhoneNumberField(null=False, blank=False, unique=True, verbose_name='Телефон')
+    last_login = serializers.DateTimeField(read_only=True)
+    role = serializers.CharField()
