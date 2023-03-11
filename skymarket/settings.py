@@ -34,7 +34,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['127.0.0.1']
 
 
-
 # Application definition
 INSTALLED_APPS = [
     # my_app
@@ -54,17 +53,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # приложения свое для авторизации
-    # 'accounts',
-
-    # rest API implementation library for django
+    # сторонний пакет для конечных точек регистрации и аутентификации пользователей
+    'djoser',
+    # Библиотека реализации rest API для django
     "rest_framework",
-
-    # JWT authentication backend library
+    # JWT authentication backend library (Серверная библиотека аутентификации JWT)
     'rest_framework_simplejwt',
     # 'rest_framework.authtoken'
-    # third party package for user registration and authentication endpoints
-    'djoser',
 
     # Other apps…
     "phonenumber_field",
@@ -126,15 +121,22 @@ WSGI_APPLICATION = 'skymarket.wsgi.application'
 # }
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }
 
 # здесь мы настраиваем Djoser
 DJOSER = {
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': False,
 }
+
+# SIMPLE_JWT = {
+#     'AUTH_HEADER_TYPES': ('JWT', )
+# }
+
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -195,18 +197,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-# STATICFILES_DIRS = [
-#     # BASE_DIR / "config/static/",
-#     os.path.join(BASE_DIR, "static/"),
-# ]
+STATICFILES_DIRS = [
+    # BASE_DIR / "config/static/",
+    os.path.join(BASE_DIR, "users/static/"),
+]
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# Основной url для управления медиафайлами
+MEDIA_URL = 'users/static/media/'
+# Путь хранения картинок
+MEDIA_ROOT = os.path.join(BASE_DIR, 'users/static/media/')
 
 
 # Default primary key field type
@@ -236,7 +238,8 @@ SITE_ID = 1
 #
 # """ Determines the e-mail verification method during signup – choose one of "mandatory", "optional", or "none". """
 # ACCOUNT_EMAIL_VERIFICATION = True
-#
+
+AUTH_USER_MODEL = 'users.User'
 # ACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSignupForm'}
 # SOCIALACCOUNT_FORMS = {'signup': 'accounts.forms.MyCustomSocialSignupForm'}
 
