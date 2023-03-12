@@ -11,6 +11,7 @@ class Ad(models.Model):
     author = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Автор')
     title = models.CharField(max_length=128, name=False, verbose_name='Заголовок')
     price = models.IntegerField()
+    description = models.TextField()
     image = models.ImageField(upload_to="img_goods", verbose_name='Фото товара')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
 
