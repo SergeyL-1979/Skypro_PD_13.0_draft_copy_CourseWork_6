@@ -5,7 +5,8 @@ import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 
-from django.contrib.auth.models import AbstractBaseUser, AbstractUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, AbstractUser
+from django.contrib.auth.models import PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
 from .managers import UserManager
@@ -21,7 +22,7 @@ from django.utils.translation import gettext_lazy as _
 #     ADMIN = 'Администратор'
 
 
-class User(AbstractBaseUser, ):
+class User(AbstractBaseUser, PermissionsMixin):
     """
     Создание модели пользователя.
     Необходимые поля:
@@ -49,8 +50,6 @@ class User(AbstractBaseUser, ):
     #                         max_length=15, verbose_name='Роль пользователя')
     image = models.ImageField(upload_to="img_users", verbose_name='Аватарка пользователя')
 
-    # is_active = models.BooleanField(default=True)
-
     def image_(self):
         if self.image:
             from django.utils.safestring import mark_safe
@@ -69,12 +68,20 @@ class User(AbstractBaseUser, ):
                                     ),
                                     )
 
-    # is_staff = models.BooleanField(_('Staff Status'),
-    #                                default=False,
-    #                                help_text=_('Определяет, может ли пользователь войти на этот сайт администратора.'),
-    #                                )
+    is_staff = models.BooleanField(_('Staff Status'),
+                                   default=False,
+                                   help_text=_('Определяет, может ли пользователь войти на этот сайт администратора.'),
+                                   )
+    is_verified = models.BooleanField(_('Verified'),
+                                      default=False,
+                                      help_text=_('Обозначает, что у этого пользователя есть все разрешения без их явного назначения.')
+                                      )
     # is_admin = models.BooleanField(default=False)
     # is_superuser = models.BooleanField(default=False)
+
+    # для корректной работы нам также необходимо
+    # переопределить менеджер модели пользователя
+    objects = UserManager()
 
     # эта константа определяет поле для логина пользователя
     USERNAME_FIELD = 'email'
@@ -82,9 +89,9 @@ class User(AbstractBaseUser, ):
     # которые необходимо заполнить при создании пользователя
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone', 'role']
 
-    # для корректной работы нам также необходимо
-    # переопределить менеджер модели пользователя
-    objects = UserManager()
+    def __str__(self):
+        """ Строковое представление модели (отображается в консоли) """
+        return f"{self.email}, ({self.username})"
 
     @property
     def is_admin(self):
@@ -96,17 +103,14 @@ class User(AbstractBaseUser, ):
         # return self.role == UserRoles.USER
         return self.role == 'user'
 
-    def __str__(self):
-        """ Строковое представление модели (отображается в консоли) """
-        return self.email
-
-    @property
-    def is_superuser(self):
-        return self.is_admin
+    #
+    # @property
+    # def is_superuser(self):
+    #     return self.is_admin
 
     @property
     def is_stuff(self):
-        return self.is_admin
+        return self.role == self.is_admin
 
     @property
     def token(self):
@@ -187,74 +191,4 @@ class User(AbstractBaseUser, ):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
-
-# =====================================================================================================
-# class User(AbstractBaseUser):
-#     """
-#     Абстрактный базовый класс, реализующий полнофункциональную модель пользователя с правами администратора.
-#     Требуется имя пользователя и пароль. Другие поля являются необязательными
-#     """
-#     # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     # email = CIEmailField(_('Email Address'), unique=True, error_messages={
-#     #                          'unique': _("Пользователь с таким именем уже существует."),
-#     #                      },
-#     #                      )
-#     email = models.EmailField()
-#
-#     first_name = models.CharField(_('First Name'), max_length=255, blank=True)
-#     last_name = models.CharField(_('Last Name'), max_length=255, blank=True)
-#
-#     last_login = models.DateTimeField(auto_now=True)
-#     phone = PhoneNumberField(null=False, blank=False, unique=True)
-#     role = models.CharField(max_length=10)
-#
-#     is_staff = models.BooleanField(_('Staff Status'),
-#                                    default=False,
-#                                    help_text=_('Определяет, может ли пользователь войти на этот сайт администратора.'),
-#                                    )
-#
-#     is_active = models.BooleanField(_('Active'),
-#                                     default=True,
-#                                     help_text=_(
-#                                         'Указывает, следует ли считать этого пользователя активным. '
-#                                         'Отменить выбор вместо удаления учетных записей'
-#                                     ),
-#                                     )
-#
-#     # Audit Values
-#     is_email_confirmed = models.BooleanField(
-#         _('Email Confirmed'),
-#         default=False
-#     )
-#     date_joined = models.DateTimeField(_('Date Joined'), default=datetime.now)
-#
-#     objects = UserManager()
-#
-#     EMAIL_FIELD = 'email'
-#     USERNAME_FIELD = 'email'
-#     REQUIRED_FIELDS = [
-#         'first_name',
-#         'last_name'
-#     ]
-#
-#     class Meta:
-#         verbose_name = _('User')
-#         verbose_name_plural = _('Users')
-#
-#     def clean(self):
-#         super().clean()
-#         self.email = self.__class__.objects.normalize_email(self.email)
-#
-#     def get_full_name(self):
-#         """
-#         Return the first_name plus the last_name, with a space in between.
-#         """
-#         return f"{self.first_name} {self.last_name}"
-#
-#     def get_short_name(self):
-#         """Return the short name for the user."""
-#         return self.first_name
-#
-#     def email_user(self, subject, message, from_email=None, **kwargs):
-#         """Отправить электронное письмо этому пользователю."""
-#         send_mail(subject, message, from_email, [self.email], **kwargs)
+        unique_together = ('email', 'phone',)
