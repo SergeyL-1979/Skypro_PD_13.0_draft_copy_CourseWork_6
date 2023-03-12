@@ -9,7 +9,7 @@ from .models import User
 # TODO Обычно её всегда оформляют, но в текущей задачи делать её не обязательно
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'email', 'phone', 'last_login', 'role', 'image_',)
+    list_display = ('first_name', 'is_verified', 'email', 'phone', 'last_login', 'role', 'image_',)
     readonly_fields = ("image_", )
 
-# admin.site.register(User)
+# admin.site.register(User, UserAdmin)
