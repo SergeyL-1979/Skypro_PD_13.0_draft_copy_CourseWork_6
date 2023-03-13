@@ -35,7 +35,7 @@ ALLOWED_HOSTS = ['127.0.0.1']
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:8000"
+    "http://127.0.0.1:8000"
 ]
 
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
@@ -123,17 +123,21 @@ AUTHENTICATION_BACKENDS = [
 
 WSGI_APPLICATION = 'skymarket.wsgi.application'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#     ),
-# }
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
     ]
+}
+
+SIMPLE_JWT = {
+    # 'AUTH_HEADER_TYPES': ('JWT', )
+    'AUTH_HEADER_TYPES': ('Bearer', )
 }
 
 # здесь мы настраиваем Djoser
@@ -143,13 +147,24 @@ REST_FRAMEWORK = {
 # }
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'users.serializers.UserRegistrationSerializer'
+        'user_create': 'users.serializers.UserRegistrationSerializer',
+        'current_user': 'users.serializers.CurrentUserSerializer',
     },
-    'LOGIN_FIELD': 'email'
+    'LOGIN_FIELD': 'email',
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SEND_ACTIVATION_EMAIL': True,
+    'SET_PASSWORD_RETYPE': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'TOKEN_MODEL': None,  # We use only JWT
+    'ACTIVATION_URL': 'auth/verify/{uid}/{token}/',
 }
-
-# SIMPLE_JWT = {
-#     'AUTH_HEADER_TYPES': ('JWT', )
+# DJOSER = {
+#     'USER_CREATE_PASSWORD_RETYPE': True,
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'SET_PASSWORD_RETYPE': True,
+#     'PASSWORD_RESET_CONFIRM_RETYPE': True,
+#     'TOKEN_MODEL': None,  # We use only JWT
+#     'ACTIVATION_URL': 'auth/verify/{uid}/{token}/',
 # }
 
 
@@ -263,8 +278,8 @@ LOGIN_USERNAME_FIELDS = ['email', ]
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # Настройки электронной почты
-EMAIL_HOST = os.environ.get('HOST_SMTP_YA')
-EMAIL_PORT = os.environ.get('PORT_SMTP')
+# EMAIL_HOST = os.environ.get('HOST_SMTP_YA')
+# EMAIL_PORT = os.environ.get('PORT_SMTP')
 
 EMAIL_HOST_USER = os.environ.get('HOST_USER_YA')  # ваш QQ Номер счета и код авторизации
 EMAIL_HOST_PASSWORD = os.environ.get('YANDEX_ID')
