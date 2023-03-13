@@ -36,11 +36,6 @@ class UserManager(BaseUserManager):
             role=role
         )
 
-        if extra_fields.get('is_superuser'):
-            user = self.model(
-                username=username,
-                **extra_fields
-            )
         user.is_active = True
         user.set_password(password)
         user.save(using=self._db)
@@ -52,21 +47,31 @@ class UserManager(BaseUserManager):
                                  last_name=last_name, phone=phone, role=role,
                                  username=username, password=password, **extra_fields)
 
+    # def create_superuser(self, email, password=None, **extra_fields):
+    #     """
+    #     Create and save a SuperUser with the given email and password.
+    #     """
+    #     extra_fields.setdefault("is_staff", True)
+    #     extra_fields.setdefault("is_superuser", True)
+    #     extra_fields.setdefault("is_active", True)
+    #
+    #     if extra_fields.get('is_superuser') is not True:
+    #         raise ValueError('Superuser must have is_superuser=True.')
+    #     if extra_fields.get("is_staff") is not True:
+    #         raise ValueError(_("Superuser must have is_staff=True."))
+    #
+    #     return self._create_user(
+    #         email=email,
+    #         password=password,
+    #         **extra_fields
+    #     )
     def create_superuser(self, email, password=None, **extra_fields):
-        """
-        Create and save a SuperUser with the given email and password.
-        """
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
 
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError(_("Superuser must have is_staff=True."))
 
-        return self._create_user(
-            email=email,
-            password=password,
-            **extra_fields
-        )
+        return self._create_user(email=email, password=password, **extra_fields)
