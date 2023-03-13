@@ -1,6 +1,3 @@
-from datetime import datetime
-from enum import Enum
-
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -39,16 +36,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('admin', 'Администратор'),
         ('user', 'Пользователь'),
     ]
-    username = models.CharField(db_index=True, max_length=255, unique=True)
-    email = models.EmailField(db_index=True, max_length=60, unique=True, verbose_name='Почта')
-    first_name = models.CharField(max_length=50, verbose_name='Имя')
-    last_name = models.CharField(max_length=50, verbose_name='Фамилия')
-    phone = PhoneNumberField(null=False, blank=False, unique=True, verbose_name='Телефон')
-    last_login = models.DateTimeField(auto_now=True, verbose_name='Последний визит')
-    role = models.CharField(max_length=15, choices=STATUS, default='user', verbose_name='Права пользователя')
+    username = models.CharField(_('username'), db_index=True, max_length=255)
+    email = models.EmailField(_('email'), db_index=True, max_length=60, unique=True, blank=True)
+    first_name = models.CharField(_('first_name'), max_length=50)
+    last_name = models.CharField(_('last_name'), max_length=50)
+    phone = PhoneNumberField(_('phone'), null=False, blank=False)
+    last_login = models.DateTimeField(_('last_login'), auto_now=True)
+    role = models.CharField(_('role'), max_length=15, choices=STATUS, default='user')
     # role = models.CharField(choices=[(user_role.value, user_role.name) for user_role in UserRoles],
     #                         max_length=15, verbose_name='Роль пользователя')
-    image = models.ImageField(upload_to="img_users", verbose_name='Аватарка пользователя')
+    image = models.ImageField(_('image'), upload_to="img_users")
 
     def image_(self):
         if self.image:
@@ -89,9 +86,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     # которые необходимо заполнить при создании пользователя
     REQUIRED_FIELDS = ['first_name', 'last_name', 'phone', 'role']
 
+    class Meta:
+        verbose_name = _('Пользователь')
+        verbose_name_plural = _('Пользователи')
+        unique_together = ('email', 'phone',)
+        # abstract = True
+
     def __str__(self):
         """ Строковое представление модели (отображается в консоли) """
-        return f"{self.email}, ({self.username})"
+        return f"{self.email}, ({self.get_full_name()})"
 
     @property
     def is_admin(self):
@@ -110,7 +113,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_stuff(self):
-        return self.role == self.is_admin
+        return self.role == 'admin'
 
     @property
     def token(self):
@@ -151,6 +154,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    # def _generate_jwt_token(self):
+    #     """
+    #     Генерирует веб-токен JSON, в котором хранится идентификатор этого
+    #     пользователя, срок действия токена составляет 1 день от создания
+    #     """
+    #     dt = datetime.now() + timedelta(days=1)
+    #
+    #     token = jwt.encode({
+    #         'id': self.pk,
+    #         'exp': int(dt.strftime('%s'))
+    #     }, settings.SECRET_KEY, algorithm='HS256')
+    #
+    #     return token.decode('utf-8')
     def _generate_jwt_token(self):
         """
         Генерирует веб-токен JSON, в котором хранится идентификатор этого
@@ -160,10 +176,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         token = jwt.encode({
             'id': self.pk,
-            'exp': int(dt.strftime('%s'))
+            'exp': dt.strftime('%S')
         }, settings.SECRET_KEY, algorithm='HS256')
 
-        return token.decode('utf-8')
+        return token
 
     # Для проверки разрешений. Для простоты у всех администраторов есть ВСЕ разрешения
     def has_perm(self, perm, obj=None):
@@ -185,10 +201,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Does this user have permission to view this app? (ALWAYS YES FOR SIMPLICITY)
     def has_module_perms(self, app_label):
-        # return True
-        return self.is_admin
+        return True
+        # return self.is_admin
 
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        unique_together = ('email', 'phone',)
+
